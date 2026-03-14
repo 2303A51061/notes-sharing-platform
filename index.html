@@ -2,15 +2,18 @@
 <html>
 
 <head>
-<title>Notes Sharing Platform</title>
+<title>Student Notes Hub</title>
 <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<div class="container">
+<header>
+<h1>📚 Student Notes Hub</h1>
+<p>Share and download study notes easily</p>
+</header>
 
-<h1>📚 Notes Sharing Platform</h1>
+<div class="container">
 
 <div class="upload-box">
 
@@ -18,17 +21,23 @@
 <input id="subject" placeholder="Subject">
 <input type="file" id="file">
 
-<button onclick="uploadNote()">Upload Note</button>
+<button onclick="uploadNote()">Upload</button>
 
 </div>
 
-<input id="search" placeholder="Search by subject..." onkeyup="searchNotes()">
+<div class="search-box">
+<input id="search" placeholder="Search notes by subject..." onkeyup="searchNotes()">
+</div>
 
 <h2>Available Notes</h2>
 
 <div id="notes" class="notes-container"></div>
 
 </div>
+
+<footer>
+<p>Built for students 🚀</p>
+</footer>
 
 <script src="script.js"></script>
 
