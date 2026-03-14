@@ -1,60 +1,105 @@
-const express = require("express");
-const cors = require("cors");
-const mongoose = require("mongoose");
-const multer = require("multer");
-const app = express();
+const API_URL = "https://notes-api-ty5u.onrender.com";
 
-app.use(cors());
-app.use(express.json());
-app.use("/uploads", express.static("uploads"));
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/");
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + "-" + file.originalname);
-  }
+async function uploadNote(){
+
+const title = document.getElementById("title").value;
+const subject = document.getElementById("subject").value;
+const file = document.getElementById("file").files[0];
+
+const formData = new FormData();
+
+formData.append("title", title);
+formData.append("subject", subject);
+formData.append("file", file);
+
+await fetch(`${API_URL}/upload`,{
+method:"POST",
+body:formData
 });
 
-const upload = multer({ storage: storage });
-mongoose.connect("mongodb+srv://notesadmin:notes123@cluster0.q379ba3.mongodb.net/notesDB?retryWrites=true&w=majority")
-.then(()=>console.log("MongoDB Connected"))
-.catch(err=>console.log(err));
+loadNotes();
+}
 
-const noteSchema = new mongoose.Schema({
-  title: String,
-  subject: String,
-  file: String
-});
-const Note = mongoose.model("Note", noteSchema);
+async function loadNotes(){
 
-app.post("/upload", upload.single("file"), async (req,res)=>{
+const res = await fetch(`${API_URL}/notes`);
+const data = await res.json();
 
-  const note = new Note({
-    title: req.body.title,
-    subject: req.body.subject,
-    file: req.file.filename
-  });
+const notesDiv = document.getElementById("notes");
 
-  await note.save();
+notesDiv.innerHTML = "";
 
-  res.json({message:"Note uploaded with PDF"});
-});
+data.forEach(note => {
 
-app.get("/notes", async (req,res)=>{
-  const notes = await Note.find();
-  res.json(notes);
-});
-app.delete("/notes/:id", async (req,res)=>{
+notesDiv.innerHTML += `
+<div class="note">
+<h3>${note.title}</h3>
+<p>${note.subject}</p>
 
-  const id = req.params.id;
+<a href="${API_URL}/uploads/${note.file}" target="_blank">
+Download PDF
+</a>
 
-  await Note.findByIdAndDelete(id);
+<button onclick="deleteNote('${note._id}')">
+Delete
+</button>
 
-  res.json({message:"Note deleted"});
+</div>
+`;
 
 });
 
-app.listen(5000,()=>{
-  console.log("Server running on port 5000");
+}
+
+async function deleteNote(id){
+
+await fetch(`${API_URL}/notes/${id}`,{
+method:"DELETE"
 });
+
+loadNotes();
+
+}
+
+async function searchNotes(){
+
+const keyword = document.getElementById("search").value.toLowerCase();
+
+const res = await fetch(`${API_URL}/notes`);
+const data = await res.json();
+
+const notesDiv = document.getElementById("notes");
+
+notesDiv.innerHTML = "";
+
+data.forEach(note => {
+
+if(note.subject.toLowerCase().includes(keyword)){
+
+notesDiv.innerHTML += `
+<div class="note">
+<h3>${note.title}</h3>
+<p>${note.subject}</p>
+
+<a href="${API_URL}/uploads/${note.file}" target="_blank">
+Download PDF
+</a>
+
+<button onclick="deleteNote('${note._id}')">
+Delete
+</button>
+
+</div>
+`;
+
+}
+
+});
+
+if(keyword === ""){
+loadNotes();
+}
+
+}
+
+loadNotes();
